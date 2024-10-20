@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% load static %}
+    <!-- Required meta tags-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="au theme template">
+    <meta name="author" content="Hau Nguyen">
+    <meta name="keywords" content="au theme template">
+
+    <!-- Title Page-->
+    <title>Dashboard 3</title>
+
+    <!-- Fontfaces CSS-->
+    <link href="{% static 'css/font-face.css' %}" rel="stylesheet" media="all">
+    <link href="{% static 'vendor/font-awesome-4.7/css/font-awesome.min.css' %}" rel="stylesheet" media="all">
+    <link href="{% static 'vendor/font-awesome-5/css/fontawesome-all.min.css' %}" rel="stylesheet" media="all">
+    <link href="{% static 'vendor/mdi-font/css/material-design-iconic-font.min.css' %}" rel="stylesheet" media="all">
+
+    <!-- Bootstrap CSS-->
+    <link href="{% static 'vendor/bootstrap-4.1/bootstrap.min.css' %}" rel="stylesheet" media="all">
+
+    <!-- Vendor CSS-->
+    <link href="{% static 'vendor/animsition/animsition.min.css' %}" rel="stylesheet" media="all">
+    <link href="{% static 'vendor/bootstrap-progressbar/bootstrap-progressbar-3.3.4.min.css' %}" rel="stylesheet" media="all">
+    <link href="{% static 'vendor/wow/animate.css' %}" rel="stylesheet" media="all">
+    <link href="{% static 'vendor/css-hamburgers/hamburgers.min.css' %}" rel="stylesheet" media="all">
+    <link href="{% static 'vendor/slick/slick.css' %}" rel="stylesheet" media="all">
+    <link href="{% static 'vendor/select2/select2.min.css' %}" rel="stylesheet" media="all">
+    <link href="{% static 'vendor/perfect-scrollbar/perfect-scrollbar.css' %}" rel="stylesheet" media="all">
+
+    <!-- Main CSS-->
+    <link href="{% static 'css/theme.css' %}" rel="stylesheet" media="all">
+</head>
+<body class="animsition" __processed_3f417dd8-f6f9-4e2f-b66a-5c790a4f4773__="true" style="animation-duration: 900ms; opacity: 1;" __processed_ecea44b1-b839-4bf4-8768-2b678be4d2d2__="true">
+    <div class="page-wrapper">
+        <!-- HEADER DESKTOP-->
+        <header class="header-desktop3 d-none d-lg-block">
+            <div class="section__content section__content--p35">
+                <div class="header3-wrap">
+                    <div class="header__logo">
+                        <a href="#">
+                            <!-- Corrected the image path using Django static tag -->
+                            <img src="/static/images/icon/bssfood.jpg" alt="CoolAdmin">
+                        </a>
+                    </div>
+                    <div class="header__navbar">
+                        <ul class="list-unstyled d-flex">
+                            <li class="nav-item me-3">
+                                <a href="{% url 'home' %}" class="nav-link">
+                                    <i class="fas fa-utensils"></i> <!-- Changed icon to utensils -->
+                                    <span class="bot-line"></span>Table Orders
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{% url 'delivery_order' %}" class="nav-link">
+                                    <i class="fas fa-truck"></i> <!-- Changed icon to truck -->
+                                    <span class="bot-line"></span>Delivery Order
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+
+                    
+                </div>
+            </div>
+        </header>
+        
+        <!-- END HEADER MOBILE -->
+
+        <!-- PAGE CONTENT-->
+        <div class="page-content--bgf7">
+            <!-- BREADCRUMB-->
+            
+            <!-- END BREADCRUMB-->
+
+            
+          
+
+            <!-- DATA TABLE-->
+            <section class="p-t-20">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3 class="title-5 m-b-35">data table</h3>
+                            <div class="table-data__tool">
+                                
+                                
+                            </div>
+                            <div class="table-responsive table-responsive-data2">
+                                <table class="table table-data2">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <label class="au-checkbox">
+                                                    <input type="checkbox">
+                                                    <span class="au-checkmark"></span>
+                                                </label>
+                                            </th>
+                                            <th>Number</th>
+                                            <th>Order</th>
+                                            <th>Date/Time</th>
+                                            <th>Status</th>
+                                            <th>Total Price</th>
+              
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- END DATA TABLE-->
+
+            <!-- COPYRIGHT-->
+            <section class="p-t-60 p-b-20">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="copyright">
+                                <p>Copyright © 2018 Colorlib. All rights reserved. Template by <a href="https://colorlib.com">Colorlib</a>.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- END COPYRIGHT-->
+        </div>
+
+    </div>
+
+    <!-- Example of a receipt template (hidden and dynamically created) -->
+<div id="receipt-template" style="display:none;">
+    <h2>Receipt</h2>
+    <p>Number.: <span id="receipt-table-number"></span></p>
+    <p>Pizza: <span id="receipt-pizza"></span></p>
+    <p>Date/Time: <span id="receipt-date-time"></span></p>
+    <p>Status: <span id="receipt-status"></span></p>
+    <p>Total Price: $<span id="receipt-total-price"></span></p>
+</div>
+
+<script>
+    function printReceipt(orderId) {
+        // Fetch order data (you may need to adjust this part based on how you get your order data)
+        const order = {
+            tableNumber: document.querySelector(`tr[data-order-id="${orderId}"] td:nth-child(2)`).innerText,
+            pizzas: Array.from(document.querySelectorAll(`tr[data-order-id="${orderId}"] .desc`)).map(td => td.innerText).join(', '),
+            dateTime: document.querySelector(`tr[data-order-id="${orderId}"] td:nth-child(4)`).innerText,
+            status: document.querySelector(`tr[data-order-id="${orderId}"] td:nth-child(5) span`).innerText,
+            totalPrice: document.querySelector(`tr[data-order-id="${orderId}"] td:nth-child(6)`).innerText
+        };
+
+        // Populate receipt template
+        document.getElementById('receipt-table-number').innerText = order.tableNumber;
+        document.getElementById('receipt-pizza').innerText = order.pizzas;
+        document.getElementById('receipt-date-time').innerText = order.dateTime;
+        document.getElementById('receipt-status').innerText = order.status;
+        document.getElementById('receipt-total-price').innerText = order.totalPrice.replace('$', '');
+
+        // Create a new window for printing
+        var printWindow = window.open('', '', 'height=600,width=800');
+        printWindow.document.write('<html><head><title>Print Receipt</title>');
+        printWindow.document.write('</head><body>');
+        printWindow.document.write(document.getElementById('receipt-template').innerHTML);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close(); // Necessary for IE >= 10
+        printWindow.focus(); // Necessary for IE >= 10
+        printWindow.print();
+        printWindow.close();
+    }
+</script>
+    <!-- Jquery JS-->
+<script src="{% static 'vendor/jquery-3.2.1.min.js' %}"></script>
+<!-- Bootstrap JS-->
+<script src="{% static 'vendor/bootstrap-4.1/popper.min.js' %}"></script>
+<script src="{% static 'vendor/bootstrap-4.1/bootstrap.min.js' %}"></script>
+<!-- Vendor JS -->
+<script src="{% static 'vendor/slick/slick.min.js' %}"></script>
+<script src="{% static 'vendor/wow/wow.min.js' %}"></script>
+<script src="{% static 'vendor/animsition/animsition.min.js' %}"></script>
+<script src="{% static 'vendor/bootstrap-progressbar/bootstrap-progressbar.min.js' %}"></script>
+<script src="{% static 'vendor/counter-up/jquery.waypoints.min.js' %}"></script>
+<script src="{% static 'vendor/counter-up/jquery.counterup.min.js' %}"></script>
+<script src="{% static 'vendor/circle-progress/circle-progress.min.js' %}"></script>
+<script src="{% static 'vendor/perfect-scrollbar/perfect-scrollbar.js' %}"></script>
+<script src="{% static 'vendor/chartjs/Chart.bundle.min.js' %}"></script>
+<script src="{% static 'vendor/select2/select2.min.js' %}"></script>
+
+<!-- Main JS-->
+<script src="{% static 'js/main.js' %}"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function fetchOrders() {
+        $.ajax({
+            url: '{% url "fetch_delivery" %}',  // Ensure the URL is correct
+            method: 'GET',
+            success: function(data) {
+                updateTable(data.orders);
+            },
+            error: function(error) {
+                console.log("Error fetching orders:", error);
+            }
+        });
+    }
+
+    function updateTable(orders) {
+        const tbody = $('.table-data2 tbody');
+        tbody.empty();  // Clear the existing rows
+
+        orders.forEach(order => {
+            const itemsDesc = order.items.map(item => `${item.quantity}x ${item.typ} ${item.name} (${item.comment})`).join(' - ');
+            
+            const row = `
+                <tr class="tr-shadow">
+                    <td>
+                        <label class="au-checkbox">
+                            <input type="checkbox">
+                            <span class="au-checkmark"></span>
+                        </label>
+                    </td>
+                    <td>${order.number}</td>
+                    <td class="desc">${itemsDesc}</td>
+                    <td>${order.order_date}</td>
+                    <td>
+                        <span class="status--process">${order.status}</span>
+                    </td>
+                    <td>${order.total_price} DZD </td>
+                    <td>
+                        <div class="table-data-feature">
+                            <button class="item" data-toggle="tooltip" data-placement="top" title="View">
+                                <i class="zmdi zmdi-eye"></i>
+                            </button>
+                            <button class="item" data-toggle="tooltip" data-placement="top" title="Edit">
+                                <i class="zmdi zmdi-edit"></i>
+                            </button>
+                            <button class="item" data-toggle="tooltip" data-placement="top" title="Delete">
+                                <i class="zmdi zmdi-delete"></i>
+                            </button>
+                            <button class="item" data-toggle="tooltip" data-placement="top" title="Print Receipt" onclick="printReceipt('${order.id}')">
+                                <i class="zmdi zmdi-print"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            tbody.append(row);
+        });
+    }
+
+    // Set an interval to fetch orders every 10 seconds (10000 milliseconds)
+    setInterval(fetchOrders, 1000);
+</script>
+
+</body>
+
+</html>
+<!-- end document-->

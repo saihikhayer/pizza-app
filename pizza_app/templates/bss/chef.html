@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chef's Orders</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const orderContainer = document.getElementById('order-container');
+            const socket = new WebSocket('ws://localhost:8000/ws/orders/');
+
+
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                const newOrder = document.createElement('div');
+                newOrder.innerHTML = `<p>${data.message}</p>`;
+                orderContainer.appendChild(newOrder);
+
+                // Automatically print the order (trigger a print dialog)
+                window.print();
+            };
+        });
+    </script>
+</head>
+<body>
+    <h1>Chef's Orders</h1>
+    <div id="order-container"></div>
+</body>
+</html>
