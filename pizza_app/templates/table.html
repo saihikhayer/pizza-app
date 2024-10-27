@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Table Order System</title>
+    
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -123,6 +124,7 @@
             text-align: center;
         }
     </style>
+    
 </head>
 <body>
 
@@ -139,14 +141,13 @@
     <label for="filterDishes">Filter Dishes:</label>
     <select id="filterDishes" onchange="filterDishes(this.value)">
         <option value="all">All</option>
-        {% for typ in typs%}
-        <option value="{{typ}}">{{ typ }}</option>
+        {% for typ in typs %}
+        <option value="{{ typ }}">{{ typ }}</option>
         {% endfor %}
     </select>
 
     <div class="dish-container" id="dishContainer">
-       
-        {% for menu in menus  %}
+        {% for menu in menus %}
         <div class="dish-card" data-category="{{ menu.typ }}">
             <div class="dish-info">
                 <h3>{{ menu.name }}</h3>
@@ -154,8 +155,8 @@
             </div>
             <div class="dish-controls">
                 <input type="number" min="1" value="1" class="quantityInput">
-                <input id='comment' type="text" placeholder="Add comment" class="commentInput">
-                <button onclick="addDish(this, '{{ menu.id }}', {{ menu.price }})">Add</button>
+                <input id="comment" type="text" placeholder="Add comment" class="commentInput">
+                <button onclick="addDish(this, '{{ menu.id }}', '{{ menu.typ }}', '{{ menu.name }}', {{ menu.price }})">Add</button>
             </div>
         </div>
         {% endfor %}
@@ -165,10 +166,11 @@
         <!-- Order items will be added here -->
     </div>
 
-    <div id="totalPrice" class="total-price">Total Price: $0.00</div>
+    <div id="totalPrice" class="total-price">Total Price: 0.00 DZD</div>
 
     <button class="submit-btn" onclick="submitOrder()">Submit Order</button>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
     let orderList = [];
@@ -185,14 +187,17 @@
         });
     }
 
-    function addDish(button, name, price) {
+    function addDish(button, id, typ, name, price) {
         const quantity = parseInt(button.previousElementSibling.previousElementSibling.value, 10);
         const comment = button.previousElementSibling.value;
         const total = quantity * price;
-    
+
+        // Convert the name to uppercase to match the desired format
+        const fullName = `${typ}-${name.toUpperCase()}`; // e.g., Burger-DOUBLE CHEESE
+
         // Check if dish is already in the order
-        const existingItem = orderList.find(item => item.name === name && item.comment === comment);
-    
+        const existingItem = orderList.find(item => item.id === id && item.comment === comment);
+
         if (existingItem) {
             // If dish exists, update its quantity and total price
             existingItem.quantity += quantity;
@@ -200,7 +205,8 @@
         } else {
             // Add new dish to the order list
             const orderItem = {
-                name: name,
+                id: id,
+                fullName: fullName, // Use fullName for display
                 quantity: quantity,
                 price: price,
                 total: total,
@@ -208,12 +214,11 @@
             };
             orderList.push(orderItem);
         }
-    
+
         totalPrice += total;
         updateOrderList();
         updateTotalPrice();
     }
-    
 
     function updateOrderList() {
         const orderListContainer = document.getElementById('orderList');
@@ -223,15 +228,15 @@
             const orderItem = document.createElement('div');
             orderItem.classList.add('order-item');
             orderItem.innerHTML = `
-                <span>${item.quantity} x ${item.name} - $${item.total.toFixed(2)} ${item.comment ? ' (' + item.comment + ')' : ''}</span>
-                <span class="remove-btn" onclick="removeOrderItem('${item.name}')">✖</span>
+                <span>${item.quantity} x ${item.fullName} - ${item.total.toFixed(2)} DZD${item.comment ? ' (' + item.comment + ')' : ''}</span>
+                <span class="remove-btn" onclick="removeOrderItem('${item.id}', '${item.comment}')">✖</span>
             `;
             orderListContainer.appendChild(orderItem);
         });
     }
 
-    function removeOrderItem(name) {
-        const itemIndex = orderList.findIndex(item => item.name === name);
+    function removeOrderItem(id, comment) {
+        const itemIndex = orderList.findIndex(item => item.id === id && item.comment === comment);
         if (itemIndex > -1) {
             totalPrice -= orderList[itemIndex].total;
             orderList.splice(itemIndex, 1);
@@ -239,45 +244,56 @@
             updateTotalPrice();
         }
     }
+
     function updateTotalPrice() {
         const totalPriceElement = document.getElementById('totalPrice');
-        totalPriceElement.innerHTML = `Total Price: $${totalPrice.toFixed(2)}`;
+        totalPriceElement.innerHTML = `Total Price: ${totalPrice.toFixed(2)} DZD`;
     }
 
     function submitOrder() {
-        if (orderList.length === 0) {
-            alert('Please add items to your order before submitting.');
-            return;
-        }
-    
-        // Prepare the data for submission
-        const tableNumber = document.getElementById('tableNumber').value;
-        const orderData = {
-            table_number: tableNumber,
-            items: orderList,
-            total_price: totalPrice.toFixed(2),
-            
-        };
-    
-        // Send the order to the server using AJAX
-        $.ajax({
-            url: '/submit-order/',  // You would define this URL in your Django views
-            method: 'POST',
-            data: JSON.stringify(orderData),
-            contentType: 'application/json',
-            success: function(response) {
-                alert(`Order submitted! Total price: $${totalPrice.toFixed(2)}`);
-                orderList = [];
-                totalPrice = 0;
-                updateOrderList();
-                updateTotalPrice();
-            },
-            error: function(error) {
-                alert('An error occurred while submitting the order.');
-            }
-        });
+    if (orderList.length === 0) {
+        alert('Please add items to your order before submitting.');
+        return;
     }
-    
+
+    const tableNumber = document.getElementById('tableNumber').value;
+    const orderData = {
+        table_number: tableNumber,
+        items: orderList,
+        total_price: totalPrice.toFixed(2),
+    };
+
+    // Disable the submit button
+    const submitButton = document.querySelector('.submit-btn');
+    submitButton.disabled = true;
+
+    $.ajax({
+        url: '/submit-order/',
+        method: 'POST',
+        data: JSON.stringify(orderData),
+        contentType: 'application/json',
+        success: function(response) {
+            alert('Order submitted successfully!');
+            orderList = [];
+            totalPrice = 0;
+            updateOrderList();
+            updateTotalPrice();
+
+            // Re-enable the button after 5 seconds
+            setTimeout(() => {
+                submitButton.disabled = false;
+            }, 5000);
+        },
+        error: function(error) {
+            console.error('Error submitting order:', error);
+            alert('An error occurred while submitting the order.');
+
+            // Re-enable the button in case of error
+            submitButton.disabled = false;
+        }
+    });
+}
+
 </script>
 
 </body>

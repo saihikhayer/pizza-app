@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Order Statistics</title>
+
+    <!-- CSS Files -->
+    <link href="{% static 'css/font-face.css' %}" rel="stylesheet" media="all">
+    <link href="{% static 'vendor/font-awesome-4.7/css/font-awesome.min.css' %}" rel="stylesheet" media="all">
+    <link href="{% static 'vendor/bootstrap-4.1/bootstrap.min.css' %}" rel="stylesheet" media="all">
+    <link href="{% static 'css/theme.css' %}" rel="stylesheet" media="all">
+    
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            color: #444;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            color: #d63c31;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .stat {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 1 1 200px;
+            margin: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .stat p {
+            font-size: 1.2em;
+            color: #000;
+        }
+
+        /* Styling for Server Order Section */
+        .server-stats {
+            background-color: #e8f0fe; /* Light background color */
+            border: 1px solid #c4d6f2; /* Light border */
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 40px;
+        }
+
+        /* Chart Container Styling */
+        .chart-container {
+            margin-top: 40px;
+            position: relative;
+            height: 400px; /* Set a fixed height for charts */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Existing Statistics Section -->
+    <h1>BSS Order Statistics</h1>
+    <div class="stats">
+        <div class="stat">
+            <h2>Total Orders</h2>
+            <p>{{ total_orders }}</p>
+        </div>
+        <div class="stat">
+            <h2>Top Dish</h2>
+            <p>{{ top_dish }}</p>
+        </div>
+        <div class="stat">
+            <h2>Total Revenue</h2>
+            <p>{{ total_revenue }} DZD</p>
+        </div>
+        <div class="stat">
+            <h2>Orders Today</h2>
+            <p>{{ orders_today }}</p>
+        </div>
+        <div class="stat">
+            <h2>Revenue Today</h2>
+            <p>{{ revenue_today }} DZD</p>
+        </div>
+    </div>
+
+    <!-- Delivery Statistics Section -->
+    <h1>BSS Delivery Statistics</h1>
+    <div class="stats">
+        <div class="stat">
+            <h2>Total Delivery Orders</h2>
+            <p>{{ total_delivery_orders }}</p>
+        </div>
+        <div class="stat">
+            <h2>Top Delivery Dish</h2>
+            <p>{{ top_delivery_dish }}</p>
+        </div>
+        <div class="stat">
+            <h2>Total Delivery Revenue</h2>
+            <p>{{ total_delivery_revenue }} DZD</p>
+        </div>
+        <div class="stat">
+            <h2>Delivery Orders Today</h2>
+            <p>{{ delivery_orders_today }}</p>
+        </div>
+        <div class="stat">
+            <h2>Delivery Revenue Today</h2>
+            <p>{{ delivery_revenue_today }} DZD</p>
+        </div>
+    </div>
+
+    <!-- Server Order Statistics Section -->
+    <h1>Server Order Statistics</h1>
+    <div class="server-stats">
+        <div class="stats">
+            {% for server_order in server_orders %}
+                <div class="stat">
+                    <h2>{{ server_order.user}}</h2> <!-- Display server's username -->
+                    <p>Orders: {{ server_order.order }}</p> <!-- Display server's order count -->
+                </div>
+            {% empty %}
+                <p>No server orders available.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="chart-container">
+        <canvas id="restaurantChart" class="chart"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="deliveryChart" class="chart"></canvas>
+    </div>
+</div>
+
+<!-- Chart.js Script for Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const menuLabels = {{ menu_labels|safe }};
+    const menuData = {{ menu_data|safe }};
+    const deliveryData = {{ delivery_data|safe }};
+
+    // Restaurant Orders Chart
+    const ctxRestaurant = document.getElementById('restaurantChart').getContext('2d');
+    new Chart(ctxRestaurant, {
+        type: 'bar',
+        data: {
+            labels: menuLabels,
+            datasets: [{
+                label: 'Restaurant Orders',
+                data: menuData,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Delivery Orders Chart
+    const ctxDelivery = document.getElementById('deliveryChart').getContext('2d');
+    new Chart(ctxDelivery, {
+        type: 'bar',
+        data: {
+            labels: menuLabels,
+            datasets: [{
+                label: 'Delivery Orders',
+                data: deliveryData,
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

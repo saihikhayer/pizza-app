@@ -1,119 +1,145 @@
 import tkinter as tk
-import asyncio
-import websockets
-import json
+import requests
 import threading
-from queue import Queue
 import win32print
 import win32ui
-
+import datetime
 
 class OrderApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Chef Orders")
+        self.root.title("BSS Food Orders")
+        self.root.geometry("450x600")
+        self.root.configure(bg="#2b2b2b")
+        self.root.iconbitmap("icon.ico")  # Dark background for modern look
 
-        # Create a Listbox to display orders
-        self.order_list = tk.Listbox(self.root, width=50, height=20)
-        self.order_list.pack(pady=20)
+        self.url = "http://saihikhayer.pythonanywhere.com/get_new_orders/"
+        self.purl = "http://saihikhayer.pythonanywhere.com/is_print/"
+        self.urld = "http://saihikhayer.pythonanywhere.com/get_delivery_orders/"
+        self.purld = "http://saihikhayer.pythonanywhere.com/is_print_delivery/"
 
-        # Queue to communicate between WebSocket thread and Tkinter
-        self.order_queue = Queue()
+        # Title Label with Modern Font and Spacing
+        title_label = tk.Label(self.root, text="Incoming Orders", font=("Helvetica Neue", 18, "bold"), 
+                               bg="#2b2b2b", fg="#f5f5f5", pady=20)
+        title_label.pack()
 
-        # Start the WebSocket listener in a separate thread
-        threading.Thread(target=self.start_websocket, daemon=True).start()
+        # Listbox with Modern Styling
+        self.order_list = tk.Listbox(self.root, width=45, height=15, font=("Helvetica", 12), bg="#393939",
+                                     fg="#ffffff", selectbackground="#4e8ef7", borderwidth=0, highlightthickness=0)
+        self.order_list.pack(pady=10, padx=20)
 
-        # Periodically check the queue and update the Listbox
-        self.root.after(100, self.check_orders)
+        # Modern Styled Button
+        refresh_button = tk.Button(self.root, text="Refresh Orders", command=self.refresh_orders,
+                                   font=("Helvetica Neue", 12), bg="#4e8ef7", fg="#ffffff",
+                                   activebackground="#5aa9f8", activeforeground="#ffffff",
+                                   relief="flat", padx=10, pady=5, borderwidth=0)
+        refresh_button.pack(pady=(10, 20))
 
-    async def listen_orders(self):
-        uri = "ws://localhost:8000/ws/orders/"
+        # Start fetching orders in separate threads
+        threading.Thread(target=lambda: self.fetch_orders(self.url, self.purl), daemon=True).start()
+        threading.Thread(target=lambda: self.fetch_orders(self.urld, self.purld), daemon=True).start()
+
+    def fetch_orders(self, url, purl):
+        """Fetch new orders from the Django API and update the Listbox."""
         try:
-            async with websockets.connect(uri) as websocket:
-                while True:
-                    message = await websocket.recv()
-                    order_data = json.loads(message)
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                orders_data = response.json().get('messages', [])
+                if orders_data:
+                    for order in orders_data:
+                        self.root.after(0, self.update_order_list, order[1])
+                        self.root.after(0, lambda o=order: self.print_ticket(o[1], o[2]))
+                        self.mark_as_printed(order[0], purl)
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching orders: {e}")
 
-                    # Put the received message into the queue
-                    self.order_queue.put(order_data['message'])
-        except Exception as e:
-            print(f"WebSocket error: {e}")
-            self.order_queue.put(f"WebSocket error: {e}")
+        self.root.after(5000, self.fetch_orders, url, purl)
 
-    def start_websocket(self):
-        asyncio.run(self.listen_orders())
+    def refresh_orders(self):
+        """Manual refresh button to retrieve latest orders."""
+        self.fetch_orders(self.url, self.purl)
+        self.fetch_orders(self.urld, self.purld)
 
-    def check_orders(self):
-        """Check the queue and insert new orders into the Listbox."""
-        while not self.order_queue.empty():
-            order_message = self.order_queue.get()
+    def update_order_list(self, order_message):
+        """Update the Listbox with a new order message."""
+        self.order_list.insert(tk.END, order_message)
 
-            # Insert the message into the Listbox
-            self.order_list.insert(tk.END, order_message)
-
-            # Automatically print the formatted message
-            self.print_ticket(order_message)
-
-        # Re-run this method after 100 milliseconds
-        self.root.after(100, self.check_orders)
-
-    def print_ticket(self, text):
-        """Print the formatted order message to the configured printer using a Canvas."""
+    def mark_as_printed(self, order_id, url):
+        """Send POST request to mark order as printed after printing."""
         try:
-            printer_name = win32print.GetDefaultPrinter()  # Use the default printer
+            if order_id:
+                response = requests.post(url, data={'order_id': order_id})
+                if response.status_code == 200:
+                    print(f"Order {order_id} marked as printed.")
+        except requests.exceptions.RequestException as e:
+            print(f"Error marking order as printed: {e}")
 
-            # Parse and format the order text (assuming comma-separated dishes)
-            dishes = text.split("-")  # Assuming dishes are comma-separated in the text
-            formatted_text = ["Order Ticket", "-------------------------"] + dishes + ["-------------------------", "Thank you for your order!"]
+    def print_ticket(self, text, total_price):
+        """Print the formatted order message to an 80mm thermal printer with smaller text."""
+        try:
+            printer_name = win32print.GetDefaultPrinter()
+            current_datetime = datetime.datetime.now()
+            date_str = current_datetime.strftime("%Y-%m-%d")
+            time_str = current_datetime.strftime("%H:%M:%S")
 
-            # Open the printer
-            printer = win32print.OpenPrinter(printer_name)
             try:
-                # Set up the printer context
-                hdc = win32ui.CreateDC()
-                hdc.CreatePrinterDC(printer_name)
-                hdc.StartDoc("Order Ticket")
-                hdc.StartPage()
+                total_price = float(total_price)
+            except ValueError:
+                print(f"Could not convert total_price '{total_price}' to float.")
+                total_price = 0.0
 
-                # Set the font and text formatting
-                font = win32ui.CreateFont({
-                    "name": "Arial",
-                    "height": 80,  # Font size for the ticket
-                    "weight": 700,  # Bold font
-                    "italic": 0
-                })
-                hdc.SelectObject(font)  # Select the font for the printer context
+            order_items = text.split("\n")
+            formatted_text = [
+                "=========================",
+                "       BSS FOOD SERVICES   ",
+                "                  WELCOME   ",
+                "-------------------------------------------",
+                f"Date: {date_str} Time: {time_str}",
+                "===========================================",
+                
+            ]
 
-                # Define the starting position for printing the text
-                x_position = 100  # Starting X position
-                y_position = 100  # Starting Y position
-                line_height = 120  # Distance between lines of text
+            formatted_text.extend(order_items)
+            formatted_text += [
+                "----------------------------",
+                f" TOTAL: {total_price} da ",
+                "----------------------------",
+                "          Thank you for sharing a delicious moment with us    ",
+                "                         ",
+                "======================================================",
+              
+                "      INSTAGRAM : bss_food_03     TEL : 0670814232                      ",
 
-                # Print each line of the formatted text
-                for line in formatted_text:
-                    hdc.TextOut(x_position, y_position, line)
-                    y_position += line_height  # Move the Y position down for the next line
+            
+            ]
 
-                # Add additional style elements (like lines to separate sections)
-                hdc.MoveTo(x_position, y_position + 20)  # Start position of the line
-                hdc.LineTo(x_position + 600, y_position + 20)  # Length of the line
+            printer = win32print.OpenPrinter(printer_name)
+            hdc = win32ui.CreateDC()
+            hdc.CreatePrinterDC(printer_name)
+            hdc.StartDoc("Order Ticket")
+            hdc.StartPage()
 
-                # End the page and the document
-                hdc.EndPage()
-                hdc.EndDoc()
+            title_font = win32ui.CreateFont({"name": "Arial", "height": 40, "weight": 700})
+            body_font = win32ui.CreateFont({"name": "Arial", "height": 24, "weight": 400})
 
-                print("Order has been sent to the printer with professional formatting!")
+            hdc.SelectObject(title_font)
+            y_position = 40
+            for line in formatted_text[:5]:
+                hdc.TextOut(40, y_position, line)
+                y_position += 60
 
-            except Exception as e:
-                print(f"Failed to print the order: {e}")
+            hdc.SelectObject(body_font)
+            for line in formatted_text[5:]:
+                hdc.TextOut(40, y_position, line)
+                y_position += 40
 
-            finally:
-                # Close the printer handle
-                win32print.ClosePrinter(printer)
+            hdc.EndPage()
+            hdc.EndDoc()
+            print("Order has been sent to the printer with date and time!")
+            win32print.ClosePrinter(printer)
 
         except Exception as e:
             print(f"Error printing: {e}")
-
 
 if __name__ == "__main__":
     root = tk.Tk()

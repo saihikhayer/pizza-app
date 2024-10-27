@@ -49,36 +49,50 @@
                     <div class="header__navbar">
                         <ul class="list-unstyled d-flex">
                             <li class="nav-item me-3">
-                                <a href="{% url 'home' %}" class="nav-link">
-                                    <i class="fas fa-utensils"></i> <!-- Changed icon to utensils -->
-                                    <span class="bot-line"></span>Table Orders
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{% url 'delivery_order' %}" class="nav-link">
-                                    <i class="fas fa-truck"></i> <!-- Changed icon to truck -->
-                                    <span class="bot-line"></span>Delivery Order
-                                </a>
-                            </li>
+                            <a href="{% url 'home' %}" class="nav-link">
+                                <i class="fas fa-utensils"></i> <!-- Icon for Table Orders -->
+                                <span class="bot-line"></span>Table Orders
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'delivery_order' %}" class="nav-link">
+                                <i class="fas fa-truck"></i> <!-- Icon for Delivery Order -->
+                                <span class="bot-line"></span>Delivery Order
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'delivery_order_system' %}" class="nav-link">
+                                <i class="fas fa-clipboard-list"></i>
+
+                                <span class="bot-line"></span>Delivery Order System
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{% url 'order_statistics' %}" class="nav-link">
+                                <i class="fas fa-chart-bar"></i> <!-- Updated icon class -->
+
+                                <span class="bot-line"></span>Order Statistics
+                            </a>
+                        </li>
                         </ul>
                     </div>
-                    
 
-                    
+
+
                 </div>
             </div>
         </header>
-        
+
         <!-- END HEADER MOBILE -->
 
         <!-- PAGE CONTENT-->
         <div class="page-content--bgf7">
             <!-- BREADCRUMB-->
-            
+
             <!-- END BREADCRUMB-->
 
-            
-          
+
+
 
             <!-- DATA TABLE-->
             <section class="p-t-20">
@@ -87,8 +101,8 @@
                         <div class="col-md-12">
                             <h3 class="title-5 m-b-35">data table</h3>
                             <div class="table-data__tool">
-                                
-                                
+
+
                             </div>
                             <div class="table-responsive table-responsive-data2">
                                 <table class="table table-data2">
@@ -105,11 +119,11 @@
                                             <th>Date/Time</th>
                                             <th>Status</th>
                                             <th>Total Price</th>
-              
+
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        
+
                                     </tbody>
                                 </table>
                             </div>
@@ -125,7 +139,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="copyright">
-                                <p>Copyright © 2018 Colorlib. All rights reserved. Template by <a href="https://colorlib.com">Colorlib</a>.</p>
+                                <p>Copyright © 2024 BssFood. All rights reserved.</p>
                             </div>
                         </div>
                     </div>
@@ -211,51 +225,80 @@
     }
 
     function updateTable(orders) {
-        const tbody = $('.table-data2 tbody');
-        tbody.empty();  // Clear the existing rows
+    const tbody = $('.table-data2 tbody');
+    tbody.empty();  // Clear the existing rows
 
-        orders.forEach(order => {
-            const itemsDesc = order.items.map(item => `${item.quantity}x ${item.typ} ${item.name} (${item.comment})`).join(' - ');
-            
-            const row = `
-                <tr class="tr-shadow">
-                    <td>
-                        <label class="au-checkbox">
-                            <input type="checkbox">
-                            <span class="au-checkmark"></span>
-                        </label>
-                    </td>
-                    <td>${order.number}</td>
-                    <td class="desc">${itemsDesc}</td>
-                    <td>${order.order_date}</td>
-                    <td>
-                        <span class="status--process">${order.status}</span>
-                    </td>
-                    <td>${order.total_price} DZD </td>
-                    <td>
-                        <div class="table-data-feature">
-                            <button class="item" data-toggle="tooltip" data-placement="top" title="View">
-                                <i class="zmdi zmdi-eye"></i>
-                            </button>
-                            <button class="item" data-toggle="tooltip" data-placement="top" title="Edit">
-                                <i class="zmdi zmdi-edit"></i>
-                            </button>
-                            <button class="item" data-toggle="tooltip" data-placement="top" title="Delete">
-                                <i class="zmdi zmdi-delete"></i>
-                            </button>
-                            <button class="item" data-toggle="tooltip" data-placement="top" title="Print Receipt" onclick="printReceipt('${order.id}')">
-                                <i class="zmdi zmdi-print"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-            tbody.append(row);
-        });
-    }
+    orders.forEach(order => {
+        const itemsDesc = order.items.map(item => `${item.quantity}x ${item.typ} ${item.name} (${item.comment})`).join(' - ');
 
-    // Set an interval to fetch orders every 10 seconds (10000 milliseconds)
-    setInterval(fetchOrders, 1000);
+        const row = `
+            <tr class="tr-shadow">
+                <td>
+                    <label class="au-checkbox">
+                        <input type="checkbox">
+                        <span class="au-checkmark"></span>
+                    </label>
+                </td>
+                <td>${order.number}</td>
+                <td class="desc">${itemsDesc}</td>
+                <td>${order.order_date}</td>
+                <td>
+                    <span class="status--process">${order.status}</span>
+                </td>
+                <td>${order.total_price} DZD</td>
+                <td>
+                    <div class="table-data-feature">
+                        <button class="item" data-toggle="tooltip" data-placement="top" title="Completed" onclick="markOrderCompleted('${order.id}')">
+                            <i class="zmdi zmdi-check"></i>
+                        </button>
+                        <button class="item" data-toggle="tooltip" data-placement="top" title="Delete" onclick="deleteOrder('${order.id}')">
+                            <i class="zmdi zmdi-delete"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function markOrderCompleted(orderId) {
+    $.ajax({
+        url: '{% url "confirm_delivery" %}',  // Ensure the URL is correct
+        method: 'POST',
+        data: {
+            order_id: orderId,
+            csrfmiddlewaretoken: '{{ csrf_token }}'  // Ensure CSRF token is added
+        },
+        success: function() {
+            fetchOrders();  // Refresh the orders list after marking completed
+        },
+        error: function(error) {
+            console.log("Error marking order completed:", error);
+        }
+    });
+}
+
+function deleteOrder(orderId) {
+    $.ajax({
+        url: '{% url "delete_delivery" %}',  // Ensure the URL points to your delete order view
+        method: 'POST',
+        data: {
+            order_id: orderId,
+            csrfmiddlewaretoken: '{{ csrf_token }}'  // Ensure CSRF token is added
+        },
+        success: function() {
+            fetchOrders();  // Refresh the orders list after deletion
+        },
+        error: function(error) {
+            console.log("Error deleting order:", error);
+        }
+    });
+}
+
+// Set an interval to fetch orders every 10 seconds (10000 milliseconds)
+setInterval(fetchOrders, 10000);
+
 </script>
 
 </body>

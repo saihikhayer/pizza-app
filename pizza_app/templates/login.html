@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSS Restaurant</title>
+    <link href="{% static 'images/favicon.ico' %}" rel="icon">
+    <style>
+        /* Global Reset and Body Style */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Jost', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-image: url('https://images.pexels.com/photos/2260555/pexels-photo-2260555.jpeg?auto=compress&cs=tinysrgb&w=600');
+            background-size: cover;
+            background-position: center; /* Center the image */
+        }
+
+        /* Container */
+        .container {
+            background: rgba(255, 255, 255, 0.9); /* Slight transparency for contrast */
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 350px;
+            width: 90%;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        /* Heading */
+        .heading {
+            font-size: 24px;
+            font-weight: 700;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        /* Form Styles */
+        .form {
+            margin-top: 20px;
+        }
+        .form .input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .form .input:focus {
+            border-color: #0099ff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 153, 255, 0.3);
+        }
+
+        /* Button Styles */
+        .form .login-button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            background: #0099ff;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .form .login-button:hover {
+            background: #007acc;
+        }
+
+        /* Social Buttons */
+        .social-account-container {
+            margin-top: 15px;
+        }
+        .social-account-container .title {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 5px;
+        }
+        .social-accounts {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .social-button {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #444;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 18px;
+            transition: background 0.3s;
+            cursor: pointer;
+        }
+        .social-button:hover {
+            background: #333;
+        }
+
+        /* Footer Links */
+        .agreement {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+        }
+        .agreement a {
+            color: #0099ff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="heading">BSS Food Login</h1>
+        <form class="form" method="post">
+            {% csrf_token %}
+            <input class="input" type="text" name="username" placeholder="Username" required>
+            <input class="input" type="password" name="password" placeholder="Password" required>
+            <input class="login-button" type="submit" value="Log In">
+            {% if error %}<span class="error">{{ error }}</span>{% endif %}
+        </form>
+
+        <p class="agreement">
+            By logging in, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.
+        </p>
+    </div>
+</body>
+</html>

@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -109,6 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
+
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
@@ -128,7 +130,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+LOGIN_URL = 'login'
 ASGI_APPLICATION = 'pizaa_manage.asgi.application'
 
 # Define the channel layers
@@ -137,3 +139,21 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+
+# settings.py
+JAZZMIN_SETTINGS = {
+    "site_title": "BSS FOOD Admin",
+    "site_header": "BSS FOOD",
+    "site_brand": "BSS FOOD",
+    "welcome_sign": "Welcome to BSS FOOD Admin Panel",
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"app": "auth"},
+        {"app": "your_app_name"},  # Replace 'your_app_name' with your actual app name
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+
+}
+
+
